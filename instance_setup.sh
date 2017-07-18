@@ -1,4 +1,8 @@
 #!/bin/bash
+sudo apt-get install zip
+sudo apt-get install unzip
+
+
 sudo apt-get update
 sudo apt-get --assume-yes upgrade
 sudo apt-get --assume-yes install tmux build-essential gcc g++ make binutils
@@ -20,6 +24,9 @@ cd cuda
 sudo cp lib64/* /usr/local/cuda/lib64/
 sudo cp include/* /usr/local/cuda/include/
 
+echo "export LD_LIBRARY_PATH=/usr/local/cuda/lib64/" >>  ~/.bashrc
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64/
+
 # install Anaconda for current user
 mkdir downloads
 cd downloads
@@ -28,3 +35,4 @@ bash "Anaconda2-4.2.0-Linux-x86_64.sh" -b
 
 echo "export PATH=\"$HOME/anaconda2/bin:\$PATH\"" >> ~/.bashrc
 export PATH="$HOME/anaconda2/bin:$PATH"
+pip install tensorflow-gpu

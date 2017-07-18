@@ -7,3 +7,5 @@ samples/
 *.pyc
 _*
 *~
+WEB/*
+

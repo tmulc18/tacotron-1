@@ -34,7 +34,7 @@ class Hyperparams:
     decoder_num_banks = 8
     num_highwaynet_blocks = 4
     r = 5 # Reduction factor. Paper => 2, 3, 5
-    norm_type = 'ins'  # a normalizer function. value: bn, ln, ins, or None
+    norm_type = 'bn'  # a normalizer function. value: bn, ln, ins, or None
     
     # training scheme
     lr = 0.0005 # Paper => Exponential decay
@@ -42,11 +42,15 @@ class Hyperparams:
     outputdir = 'samples' if not sanity_check else "samples_s"
     batch_size = 32
     num_epochs = 10000 if not sanity_check else 40 # Paper => 2M global steps!
-    loss_type = "l2" # Or you can test "l2"
+    loss_type = "l1" # Or you can test "l2"
     num_samples = 32
     
     # etc
     num_gpus = 1 # If you have multiple gpus, adjust this option, and increase the batch size
                  # and run `train_multiple_gpus.py` instead of `train.py`.
     target_zeros_masking = False # If True, we mask zero padding on the target, 
-                                 # so exclude them from the loss calculation.     
+                                 # so exclude them from the loss calculation.
+
+    worker=['worker0:2222']#['35.185.239.37']
+    ps= ['ps0:2222']#['35.185.239.37']                            
+    cluster_spec = {'worker':worker,'ps':ps}     

@@ -34,7 +34,7 @@ class Graph:
         self.graph = tf.Graph()
         
         with self.graph.as_default():
-            with tf.device(tf.train.replica_device_setter(ps_tasks=1)):
+            with tf.device(tf.train.replica_device_setter(ps_tasks=1,worker_device="/job:worker/task:%d" % FLAGS.task_index)):
                 if is_training:
                     self.x, self.y, self.z, self.num_batch = get_batch()
                 else: # Evaluation
@@ -49,8 +49,8 @@ class Graph:
                     
                     # Decoder 
                     self.outputs1 = decode1(self.decoder_inputs, 
-                                             self.memory,
-                                             is_training=is_training) # (N, T', hp.n_mels*hp.r)
+                                         self.memory,
+                                         is_training=is_training) # (N, T', hp.n_mels*hp.r)
                     self.outputs2 = decode2(self.outputs1, is_training=is_training) # (N, T', (1+hp.n_fft//2)*hp.r)
                  
                 if is_training:
@@ -93,10 +93,9 @@ def main():
             server.join()
     else:
         is_chief = (FLAGS.task_index == 0) #checks if this is the chief node
-        gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC",visible_device_list="")
-        config = tf.ConfigProto(allow_soft_placement=True,device_count={'GPU':0})
-        with tf.device('/cpu:0'):   
-            server = tf.train.Server(cluster,job_name="worker",
+        gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC",visible_device_list="%d"%FLAGS.task_index)
+        config = tf.ConfigProto(allow_soft_placement=True,device_count={'GPU':1})  
+        server = tf.train.Server(cluster,job_name="worker",
                         task_index=FLAGS.task_index,config=config)
         
         g = Graph(); print("Training Graph loaded")
@@ -107,9 +106,9 @@ def main():
             
             # Training 
             sv = tf.train.Supervisor(logdir=hp.logdir,
-                                     save_model_secs=0,summary_op=None,is_chief=is_chief)
+                                     save_model_secs=0,is_chief=is_chief)
 
-            gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC",visible_device_list="%d"%FLAGS.task_index)
+            gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC")#,visible_device_list="%d"%FLAGS.task_index)
             config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True)
             with sv.prepare_or_wait_for_session(server.target,config=config,start_standard_services=True) as sess:
                 for epoch in range(1, hp.num_epochs+1):
@@ -118,11 +117,11 @@ def main():
                         sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
                         sv.start_queue_runners(sess, )
                     if sv.should_stop(): print('****made it '*30) ;break
-                    for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b'):
+                    for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b%d'%FLAGS.task_index):
                         sess.run(g.train_op)
 
                         # Create the summary every 100 chief steps.
-                        sv.summary_computed(sess, sess.run(g.merged))
+                        #sv.summary_computed(sess, sess.run(g.merged))
                     
                     # Write checkpoint files at every epoch
                     if is_chief:

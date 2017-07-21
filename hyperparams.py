@@ -25,7 +25,7 @@ class Hyperparams:
     win_length = int(sr*frame_length) # samples This is dependent on the frame_length.
     n_mels = 80 # Number of Mel banks to generate
     power = 1.2 # Exponent for amplifying the predicted magnitude
-    n_iter = 30 # Number of inversion iterations 
+    n_iter = 50 # Number of inversion iterations 
     use_log_magnitude = True # if False, use magnitude
     
     # model
@@ -33,8 +33,9 @@ class Hyperparams:
     encoder_num_banks = 16
     decoder_num_banks = 8
     num_highwaynet_blocks = 4
-    r = 5 # Reduction factor. Paper => 2, 3, 5
-    norm_type = 'ins'  # a normalizer function. value: bn, ln, ins, or None
+    r = 2 # Reduction factor. Paper => 2, 3, 5
+    norm_type = 'bn'  # a normalizer function. value: bn, ln, ins, or None
+    attention_type = 'luong'  #the type of attention value: luong, bahd
     
     # training scheme
     lr = 0.0005 # Paper => Exponential decay
@@ -42,7 +43,7 @@ class Hyperparams:
     outputdir = 'samples' if not sanity_check else "samples_s"
     batch_size = 32
     num_epochs = 10000 if not sanity_check else 40 # Paper => 2M global steps!
-    loss_type = "l2" # Or you can test "l2"
+    loss_type = "l1" # Or you can test "l2"
     num_samples = 32
     
     # etc
@@ -52,5 +53,5 @@ class Hyperparams:
                                  # so exclude them from the loss calculation.
 
     ps= ['localhost:2222']#['35.185.239.37']  
-    worker=['localhost:2223','localhost2224']#['35.185.239.37']                          
+    worker=['localhost:2223','mulctunnel@hop.togo.org:2224','mulctunnel@hop.togo.org:2225',]#['35.185.239.37']                          
     cluster_spec = {'ps':ps,'worker':worker}     

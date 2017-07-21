@@ -241,10 +241,16 @@ def attention_decoder(inputs, memory, num_units=None, scope="attention_decoder",
         if num_units is None:
             num_units = inputs.get_shape().as_list[-1]
         
-        attention_mechanism = tf.contrib.seq2seq.LuongAttention(num_units, 
-                                                                   memory, 
-                                                                   scale=True,
-                                                                   probability_fn=tf.nn.softmax)
+        if hp.attention_type == 'luong':
+            attention_mechanism = tf.contrib.seq2seq.LuongAttention(num_units, 
+                                                                    memory, 
+                                                                    scale=True,
+                                                                    probability_fn=tf.nn.softmax)
+        else:
+            attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(num_units, 
+                                                                    memory, 
+                                                                    normalize=True,
+                                                                    probability_fn=tf.nn.softmax)
         decoder_cell = tf.contrib.rnn.GRUCell(num_units)
         cell_with_attention = tf.contrib.seq2seq.AttentionWrapper(decoder_cell, attention_mechanism, num_units)
         outputs, _ = tf.nn.dynamic_rnn(cell_with_attention, inputs, 

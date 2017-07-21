@@ -53,5 +53,5 @@ class Hyperparams:
                                  # so exclude them from the loss calculation.
 
     ps= ['35.185.239.37:2222']#['35.185.239.37']  
-    worker=['35.185.239.37:2223','mulctunnel@hop.togo.org:2224','mulctunnel@hop.togo.org:2225',]#['35.185.239.37']                          
+    worker=['35.185.239.37:2223','mulctunnel.hopto.org:2224','mulctunnel.hopto.org:2225',]#['35.185.239.37']                          
     cluster_spec = {'ps':ps,'worker':worker}     

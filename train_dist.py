@@ -35,7 +35,7 @@ class Graph:
         
         with self.graph.as_default():
             #tf.contrib.training.GreedyLoadBalancingStrategy
-            with tf.device(tf.train.replica_device_setter(ps_tasks=len(hp.cluster_spec['ps']):
+            with tf.device(tf.train.replica_device_setter(ps_tasks=len(hp.cluster_spec['ps'])\
                 ,worker_device="/job:worker/task:%d" % FLAGS.task_index)):
                 if is_training:
                     self.x, self.y, self.z, self.num_batch = get_batch()

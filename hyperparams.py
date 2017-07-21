@@ -52,6 +52,6 @@ class Hyperparams:
     target_zeros_masking = False # If True, we mask zero padding on the target, 
                                  # so exclude them from the loss calculation.
 
-    ps= ['localhost:2222']#['35.185.239.37']  
-    worker=['localhost:2223','mulctunnel@hop.togo.org:2224','mulctunnel@hop.togo.org:2225',]#['35.185.239.37']                          
+    ps= ['35.185.239.37:2222']#['35.185.239.37']  
+    worker=['35.185.239.37:2223','mulctunnel@hop.togo.org:2224','mulctunnel@hop.togo.org:2225',]#['35.185.239.37']                          
     cluster_spec = {'ps':ps,'worker':worker}     

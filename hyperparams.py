@@ -60,4 +60,5 @@ class Hyperparams:
     worker = [ip+':'+str(2223+i) for ip in ips for i in range(n)]
     #ps= ['localhost:2222']
     #worker=['localhost:2223','localhost:2224','localhost:2225','localhost:2226']                     
-    cluster_spec = {'ps':ps,'worker':worker}     
+    cluster_spec = {'ps':ps,'worker':worker}
+    settle_steps = 1000

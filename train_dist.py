@@ -23,6 +23,7 @@ from prepro import *
 from prepro import load_vocab
 import tensorflow as tf
 from utils import shift_by_one, byte_size_load_fn
+import time
 #from tensorflow.contrib.training.device_setter import byte_size_load_fn
 
 FLAGS = None
@@ -88,6 +89,11 @@ class Graph:
                     
                     
                     self.merged = tf.summary.merge_all()
+
+                    # For distributed
+                    self.settle_step = tf.Variable(0, name='global_step', trainable=False)
+                    one = tf.constant(1)
+                    self.inc_settle = tf.assign_add(self.settle_step,one)
          
 def main():
     cluster = tf.train.ClusterSpec(hp.cluster_spec) #lets this node know about all other nodes
@@ -118,11 +124,20 @@ def main():
                 for epoch in range(1, hp.num_epochs+1):
                     if is_chief:
                         gs = sess.run(g.global_step) 
-                        sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
+                        #sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
                         sv.start_queue_runners(sess, )
                     if sv.should_stop(): print('****made it '*30) ;break
                     for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b%d'%FLAGS.task_index):
-                        sess.run(g.train_op)
+                        if epoch == 1:
+                            if is_chief:
+                                sess.run([g.train_op,g.inc_settle])
+                            else:
+                                ss = sess.run(g.settle_step)
+                                while(ss<hp.settle_step):
+                                    time.sleep(.01)
+                                    ss = sess.run(g.settle_step)
+                        else:
+                            sess.run(g.train_op)
 
                         # Create the summary every 100 chief steps.
                         #sv.summary_computed(sess, sess.run(g.merged))

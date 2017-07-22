@@ -50,7 +50,7 @@ def eval():
 
     # Generate wav files
     if not os.path.exists(hp.outputdir): os.mkdir(hp.outputdir) 
-    with codecs.open(hp.outputdir + '/text.txt', 'w', 'utf-8') as fout:
+    with codecs.open(hp.outputdir + '/{}text.txt'.format(mname), 'w', 'utf-8') as fout:
         for i, (x, s) in enumerate(zip(X, outputs2)):
             # write text
             fout.write(str(i) + "\t" + "".join(idx2char[idx] for idx in np.fromstring(x, np.int32) if idx != 0) + "\n")

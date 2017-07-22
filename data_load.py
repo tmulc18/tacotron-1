@@ -154,15 +154,15 @@ def get_batch():
         # Decode sound file
         x, y, z = get_text_and_spectrograms(inputs=[text, sound_file], 
                                             dtypes=[tf.int32, tf.float32, tf.float32],
-                                            capacity=128,
-                                            num_threads=32)
+                                            capacity=128*hp.batch_size,
+                                            num_threads=64)
         
         # create batch queues
         x, y, z = tf.train.batch([x, y, z],
                                 shapes=[(None,), (None, hp.n_mels*hp.r), (None, (1+hp.n_fft//2)*hp.r)],
-                                num_threads=32,
+                                num_threads=64,
                                 batch_size=hp.batch_size, 
-                                capacity=hp.batch_size*32,   
+                                capacity=hp.batch_size*64,   
                                 dynamic_pad=True)
         
         if hp.use_log_magnitude:

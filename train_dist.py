@@ -133,7 +133,7 @@ def main():
                                 sess.run([g.train_op,g.inc_settle])
                             else:
                                 ss = sess.run(g.settle_step)
-                                while(ss<hp.settle_step):
+                                while(ss<hp.settle_steps):
                                     time.sleep(.01)
                                     ss = sess.run(g.settle_step)
                         else:

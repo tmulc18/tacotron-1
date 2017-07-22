@@ -8,7 +8,7 @@ https://www.github.com/kyubyong/tacotron
 class Hyperparams:
     '''Hyper parameters'''
     # mode
-    sanity_check = True
+    sanity_check = False
     
     # data
     text_file = 'WEB/text.csv'
@@ -34,7 +34,7 @@ class Hyperparams:
     decoder_num_banks = 8
     num_highwaynet_blocks = 4
     r = 2 # Reduction factor. Paper => 2, 3, 5
-    norm_type = 'bn'  # a normalizer function. value: bn, ln, ins, or None
+    norm_type = 'ins'  # a normalizer function. value: bn, ln, ins, or None
     attention_type = 'luong'  #the type of attention value: luong, bahd
     
     # training scheme

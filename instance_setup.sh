@@ -1,6 +1,7 @@
 #!/bin/bash
 sudo apt-get install zip
-sudo apt-get install unzip
+sudo apt-get install unzip &
+sudo apt-get install htop &
 
 
 sudo apt-get update
@@ -41,5 +42,6 @@ if [$1 == 'gpu']; then
 else
 	pip install tensorflow
 fi
-pip install tqdm
-pip install librosa
+pip install tqdm &
+pip install librosa &
+pip install tensorboard &

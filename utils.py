@@ -130,3 +130,31 @@ def restore_shape(arry, step, r):
     # Trim zero paddings
     restored = restored[:np.count_nonzero(restored.sum(axis=1))]    
     return restored
+
+def byte_size_load_fn(op):
+  """Load function that computes the byte size of a single-output `Operation`.
+  This is intended to be used with `"Variable"` ops, which have a single
+  `Tensor` output with the contents of the variable.  However, it can also be
+  used for calculating the size of any op that has a single output.
+  Intended to be used with `GreedyLoadBalancingStrategy`.
+  Args:
+    op: An `Operation` with a single output, typically a "Variable" op.
+  Returns:
+    The number of bytes in the output `Tensor`.
+  Raises:
+    ValueError: if `op` does not have a single output, or if the shape of the
+      single output is not fully-defined.
+  """
+  if len(op.outputs) != 1:
+    raise ValueError("Op %s must have a single output" % op)
+  output = op.outputs[0]
+  elem_size = output.dtype.size
+  shape = output.get_shape()
+  if not shape.is_fully_defined():
+    # Due to legacy behavior, scalar "Variable" ops have output Tensors that
+    # have unknown shape when the op is created (and hence passed to this
+    # load function for placement), even though the scalar shape is set
+    # explicitly immediately afterward.
+    shape = tf.tensor_shape.TensorShape(op.get_attr("shape"))
+  shape.assert_is_fully_defined()
+  return shape.num_elements() * elem_size

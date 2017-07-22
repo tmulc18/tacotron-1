@@ -52,6 +52,12 @@ class Hyperparams:
     target_zeros_masking = False # If True, we mask zero padding on the target, 
                                  # so exclude them from the loss calculation.
 
-    ps= ['localhost:2222']
-    worker=['localhost:2223','localhost:2224','localhost:2225','localhost:2226']                     
+    # Distributed computing
+    # There are len(ips) machines, each with n worker nodes and 1 ps on port 2222
+    n = 4
+    ips = ['35.197.40.44','35.197.40.45']
+    ps = [ip+':2222' for ip in ips]
+    worker = [ip+':'+str(2223+i) for ip in ips for i in range(n)]
+    #ps= ['localhost:2222']
+    #worker=['localhost:2223','localhost:2224','localhost:2225','localhost:2226']                     
     cluster_spec = {'ps':ps,'worker':worker}     

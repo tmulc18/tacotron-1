@@ -155,12 +155,12 @@ def get_batch():
         x, y, z = get_text_and_spectrograms(inputs=[text, sound_file], 
                                             dtypes=[tf.int32, tf.float32, tf.float32],
                                             capacity=128*hp.batch_size,
-                                            num_threads=64)
+                                            num_threads=32)
         
         # create batch queues
         x, y, z = tf.train.batch([x, y, z],
                                 shapes=[(None,), (None, hp.n_mels*hp.r), (None, (1+hp.n_fft//2)*hp.r)],
-                                num_threads=64,
+                                num_threads=32,
                                 batch_size=hp.batch_size, 
                                 capacity=hp.batch_size*64,   
                                 dynamic_pad=True)

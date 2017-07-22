@@ -129,7 +129,7 @@ def main():
                         sv.start_queue_runners(sess, )
                     if sv.should_stop(): print('****made it '*30) ;break
                     for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b%d'%FLAGS.task_index):
-                        if ss < hp.settle_step:
+                        if ss < hp.settle_steps:
                             if is_chief:
                                 sess.run([g.train_op,g.inc_settle])
                                 ss = sess.run(g.settle_step)

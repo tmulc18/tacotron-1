@@ -121,6 +121,7 @@ def main():
             gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC")
             config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True)
             with sv.prepare_or_wait_for_session(server.target,config=config,start_standard_services=True) as sess:
+                ss = sess.run(g.settle_step)
                 for epoch in range(1, hp.num_epochs+1):
                     if is_chief:
                         gs = sess.run(g.global_step) 
@@ -128,11 +129,11 @@ def main():
                         sv.start_queue_runners(sess, )
                     if sv.should_stop(): print('****made it '*30) ;break
                     for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b%d'%FLAGS.task_index):
-                        if epoch == 1:
+                        if ss < hp.settle_step:
                             if is_chief:
                                 sess.run([g.train_op,g.inc_settle])
-                            else:
                                 ss = sess.run(g.settle_step)
+                            else:
                                 while(ss<hp.settle_steps):
                                     #time.sleep(.01)
                                     ss = sess.run(g.settle_step)

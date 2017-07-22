@@ -22,7 +22,8 @@ import numpy as np
 from prepro import *
 from prepro import load_vocab
 import tensorflow as tf
-from utils import shift_by_one
+from utils import shift_by_one, byte_size_load_fn
+#from tensorflow.contrib.training.device_setter import byte_size_load_fn
 
 FLAGS = None
 
@@ -34,9 +35,10 @@ class Graph:
         self.graph = tf.Graph()
         
         with self.graph.as_default():
-            #tf.contrib.training.GreedyLoadBalancingStrategy
+            n_ps = len(hp.cluster_spec['ps'])
+            greedy=tf.contrib.training.GreedyLoadBalancingStrategy(num_tasks=n_ps,load_fn=byte_size_load_fn)
             with tf.device(tf.train.replica_device_setter(ps_tasks=len(hp.cluster_spec['ps'])\
-                ,worker_device="/job:worker/task:%d" % FLAGS.task_index)):
+                ,worker_device="/job:worker/task:%d" % FLAGS.task_index,ps_strategy=greedy)):
                 if is_training:
                     self.x, self.y, self.z, self.num_batch = get_batch()
                 else: # Evaluation
@@ -108,9 +110,9 @@ def main():
             
             # Training 
             sv = tf.train.Supervisor(logdir=hp.logdir,
-                                     save_model_secs=0,is_chief=is_chief)
+                                     save_model_secs=600,is_chief=is_chief)
 
-            gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC")#,visible_device_list="%d"%FLAGS.task_index)
+            gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC")
             config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True)
             with sv.prepare_or_wait_for_session(server.target,config=config,start_standard_services=True) as sess:
                 for epoch in range(1, hp.num_epochs+1):
@@ -125,10 +127,10 @@ def main():
                         # Create the summary every 100 chief steps.
                         #sv.summary_computed(sess, sess.run(g.merged))
                     
-                    # Write checkpoint files at every epoch
-                    if is_chief:
-                        gs = sess.run(g.global_step) 
-                        sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
+                    # # Write checkpoint files at every epoch
+                    # if is_chief:
+                    #     gs = sess.run(g.global_step) 
+                    #     sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

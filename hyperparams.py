@@ -61,4 +61,4 @@ class Hyperparams:
     #ps= ['localhost:2222']
     #worker=['localhost:2223','localhost:2224','localhost:2225','localhost:2226']                     
     cluster_spec = {'ps':ps,'worker':worker}
-    settle_steps = 1000
+    settle_steps = 500

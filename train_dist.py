@@ -91,7 +91,7 @@ class Graph:
                     self.merged = tf.summary.merge_all()
 
                     # For distributed
-                    self.settle_step = tf.Variable(0, name='global_step', trainable=False)
+                    self.settle_step = tf.Variable(0, name='settle_step', trainable=False)
                     one = tf.constant(1)
                     self.inc_settle = tf.assign_add(self.settle_step,one)
          
@@ -134,7 +134,7 @@ def main():
                             else:
                                 ss = sess.run(g.settle_step)
                                 while(ss<hp.settle_steps):
-                                    time.sleep(.01)
+                                    #time.sleep(.01)
                                     ss = sess.run(g.settle_step)
                         else:
                             sess.run(g.train_op)

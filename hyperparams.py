@@ -55,10 +55,10 @@ class Hyperparams:
     # Distributed computing
     # There are len(ips) machines, each with n worker nodes and 1 ps on port 2222
     n = 4
-    ips = ['35.185.240.26','104.154.152.232']
+    ips = ['104.196.246.68']
     ps = [ip+':2222' for ip in ips]
     worker = [ip+':'+str(2223+i) for ip in ips for i in range(n)]
     #ps= ['localhost:2222']
     #worker=['localhost:2223','localhost:2224','localhost:2225','localhost:2226']                     
     cluster_spec = {'ps':ps,'worker':worker}
-    settle_steps = 500
+    settle_steps = 200

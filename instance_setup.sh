@@ -18,7 +18,7 @@ bash "Anaconda2-4.2.0-Linux-x86_64.sh" -b
 echo "export PATH=\"$HOME/anaconda2/bin:\$PATH\"" >> ~/.bashrc
 export PATH="$HOME/anaconda2/bin:$PATH"
 
-if [ "$1" == "gpu" ]; then
+if [ "$1" = "gpu" ]; then
 	# download and install GPU drivers
 	wget "http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_8.0.44-1_amd64.deb" -O "cuda-repo-ubuntu1604_8.0.44-1_amd64.deb"
 

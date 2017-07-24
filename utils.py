@@ -132,29 +132,60 @@ def restore_shape(arry, step, r):
     return restored
 
 def byte_size_load_fn(op):
-  """Load function that computes the byte size of a single-output `Operation`.
-  This is intended to be used with `"Variable"` ops, which have a single
-  `Tensor` output with the contents of the variable.  However, it can also be
-  used for calculating the size of any op that has a single output.
-  Intended to be used with `GreedyLoadBalancingStrategy`.
-  Args:
-    op: An `Operation` with a single output, typically a "Variable" op.
-  Returns:
-    The number of bytes in the output `Tensor`.
-  Raises:
-    ValueError: if `op` does not have a single output, or if the shape of the
-      single output is not fully-defined.
-  """
-  if len(op.outputs) != 1:
-    raise ValueError("Op %s must have a single output" % op)
-  output = op.outputs[0]
-  elem_size = output.dtype.size
-  shape = output.get_shape()
-  if not shape.is_fully_defined():
-    # Due to legacy behavior, scalar "Variable" ops have output Tensors that
-    # have unknown shape when the op is created (and hence passed to this
-    # load function for placement), even though the scalar shape is set
-    # explicitly immediately afterward.
-    shape = tf.tensor_shape.TensorShape(op.get_attr("shape"))
-  shape.assert_is_fully_defined()
-  return shape.num_elements() * elem_size
+    """Load function that computes the byte size of a single-output `Operation`.
+    This is intended to be used with `"Variable"` ops, which have a single
+    `Tensor` output with the contents of the variable.  However, it can also be
+    used for calculating the size of any op that has a single output.
+    Intended to be used with `GreedyLoadBalancingStrategy`.
+    Args:
+      op: An `Operation` with a single output, typically a "Variable" op.
+    Returns:
+      The number of bytes in the output `Tensor`.
+    Raises:
+      ValueError: if `op` does not have a single output, or if the shape of the
+        single output is not fully-defined.
+    """
+    if len(op.outputs) != 1:
+      raise ValueError("Op %s must have a single output" % op)
+    output = op.outputs[0]
+    elem_size = output.dtype.size
+    shape = output.get_shape()
+    if not shape.is_fully_defined():
+      # Due to legacy behavior, scalar "Variable" ops have output Tensors that
+      # have unknown shape when the op is created (and hence passed to this
+      # load function for placement), even though the scalar shape is set
+      # explicitly immediately afterward.
+      shape = tf.tensor_shape.TensorShape(op.get_attr("shape"))
+    shape.assert_is_fully_defined()
+    return shape.num_elements() * elem_size
+
+def get_cdf(text_len):
+    """
+    Given array of text lens, get cdf and its support
+    """
+    hist,bin_edges=np.histogram(np.array(text_len),bins=50,density=True)
+    dx=bin_edges[1] - bin_edges[0]
+    cdf=np.cumsum(hist)*dx
+    cdf=np.insert(cdf,0,0)
+    X = bin_edges
+    return cdf,X
+
+def cdf_inv(cdf,X,y):
+    """
+    Given cdf as array, the support X,  and y = cdf(x), find inverse
+    """
+    return X[np.argmax(cdf >= y)]
+
+def get_bins(num_workers,text_len):
+    """
+    Given a list of text lens and the number of workers, compute bins for each worker
+    """
+    cdf,X = get_cdf(text_len)
+    
+    percentage_data = 1./num_workers
+    bins = dict()
+    for worker in range(num_workers):
+        min_q,max_q = (worker)*percentage_data,(worker+1)*percentage_data
+        bin_i = (cdf_inv(cdf,X,min_q),cdf_inv(cdf,X,max_q))
+        bins[worker]=bin_i
+    return bins

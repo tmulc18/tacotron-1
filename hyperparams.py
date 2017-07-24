@@ -5,7 +5,7 @@ By kyubyong park. kbpark.linguist@gmail.com.
 https://www.github.com/kyubyong/tacotron
 '''
 
-class Hyperparams:
+class Hyperparams(object):
     '''Hyper parameters'''
     # mode
     sanity_check = False
@@ -13,8 +13,8 @@ class Hyperparams:
     # data
     text_file = 'WEB/text.csv'
     sound_fpath = 'WEB'
-    max_len = 100 if not sanity_check else 30 # maximum length of text
-    min_len = 10 if not sanity_check else 20 # minimum length of text
+    max_len = 100 if not sanity_check else 30 # maximum length of text for global training
+    min_len = 10 if not sanity_check else 20 # minimum length of text for global training
     
     # signal processing
     sr = 22050 # Sampling rate. Paper => 24000
@@ -38,7 +38,7 @@ class Hyperparams:
     attention_type = 'luong'  #the type of attention value: luong, bahd
     
     # training scheme
-    lr = 0.0005 # Paper => Exponential decay
+    lr = 0.0001 # Paper => Exponential decay
     logdir = "logdir" if not sanity_check else "logdir_s"
     outputdir = 'samples' if not sanity_check else "samples_s"
     batch_size = 32
@@ -55,10 +55,15 @@ class Hyperparams:
     # Distributed computing
     # There are len(ips) machines, each with n worker nodes and 1 ps on port 2222
     n = 8
-    ips = ['35.197.14.143 ']
+    ips = ['localhost']
     ps = [ip+':2222' for ip in ips]
     worker = [ip+':'+str(2223+i) for ip in ips for i in range(n)]
     #ps= ['localhost:2222']
     #worker=['localhost:2223','localhost:2224','localhost:2225','localhost:2226']                     
     cluster_spec = {'ps':ps,'worker':worker}
-    settle_steps = 100
+    settle_steps = 0 # use if fewer workers in start of training else set to 0
+    
+    # Binning
+    binning = True
+    wkr = None # current worker
+

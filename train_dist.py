@@ -77,8 +77,8 @@ class Graph:
                          
                                                     
                     # Training Scheme
-                    #self.global_step = tf.Variable(0, name='global_step', trainable=False)
-                    self.global_step = tf.contrib.framework.get_or_create_global_step()
+                    self.global_step = tf.Variable(0, name='global_step', trainable=False)
+                    #self.global_step = tf.contrib.framework.get_or_create_global_step()
                     self.optimizer = tf.train.AdamOptimizer(learning_rate=hp.lr)
                     self.train_op = self.optimizer.minimize(self.mean_loss, global_step=self.global_step)
                        
@@ -102,7 +102,6 @@ def main():
             server = tf.train.Server(cluster,job_name="ps",task_index=FLAGS.task_index)
             server.join()
     else:
-        print('jdkdj')
         hp.wkr = FLAGS.task_index
 
         is_chief = (FLAGS.task_index == 0) #checks if this is the chief node

@@ -101,7 +101,7 @@ def load_eval_data():
     if hp.sanity_check: # We generate samples for the same texts as the ones we've used for training.
         texts = texts[:hp.batch_size]
     else:
-        texts = texts[-hp.num_samples:]
+        texts = texts[-2*hp.num_samples:-hp.num_samples]
     
     X = np.zeros(shape=[len(texts), hp.max_len], dtype=np.int32)
     for i, text in enumerate(texts):

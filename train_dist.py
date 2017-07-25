@@ -84,7 +84,7 @@ class Graph:
                     # Synchronous
                     if hp.synch:
                         self.optimizer = tf.train.SyncReplicasOptimizer(self.optimizer, 
-                                                replicas_to_aggregate=len(ips)*hp.n-hp.n_stale,
+                                                replicas_to_aggregate=len(hp.ips)*hp.n-hp.n_stale,
                                                 total_num_replicas=en(ips)*hp.n)
 
 

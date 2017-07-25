@@ -33,7 +33,7 @@ class Hyperparams(object):
     encoder_num_banks = 16
     decoder_num_banks = 8
     num_highwaynet_blocks = 4
-    r = 2 # Reduction factor. Paper => 2, 3, 5
+    r = 5 # Reduction factor. Paper => 2, 3, 5
     norm_type = 'ins'  # a normalizer function. value: bn, ln, ins, or None
     attention_type = 'luong'  #the type of attention value: luong, bahd
     
@@ -55,7 +55,7 @@ class Hyperparams(object):
     # Distributed computing
     # There are len(ips) machines, each with n worker nodes and 1 ps on port 2222
     n = 3
-    ips = ['localhost']
+    ips = ['35.197.23.34','35.197.13.2','35.197.33.243','104.196.252.37','35.197.51.142','35.185.201.89']
     ps = [ip+':2222' for ip in ips]
     worker = [ip+':'+str(2223+i) for ip in ips for i in range(n)]
     #ps= ['localhost:2222']

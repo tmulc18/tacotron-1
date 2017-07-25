@@ -106,6 +106,9 @@ class Graph:
                     self.settle_step = tf.Variable(0, name='settle_step', trainable=False)
                     one = tf.constant(1)
                     self.inc_settle = tf.assign_add(self.settle_step,one)
+
+                    if hp.synch:
+                        self.init = tf.global_variables_initializer()
          
 def main():
     cluster = tf.train.ClusterSpec(hp.cluster_spec) #lets this node know about all other nodes
@@ -141,6 +144,7 @@ def main():
                 sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
                                                         config=config,hooks=[sync_replicas_hook],
                                                         checkpoint_dir=hp.logdir)
+                sess.run(init)
             else:
                 sv = tf.train.Supervisor(logdir=hp.logdir,
                                      save_model_secs=600,is_chief=is_chief)

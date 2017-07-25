@@ -118,7 +118,7 @@ class _FuncQueueRunner(tf.train.QueueRunner):
                 with self._lock:
                     self._runs_per_session[sess] -= 1
                     
-def get_batch(worker):
+def get_batch():
     """Loads training data and put them in queues"""
     with tf.device('/cpu:0'):
         # Load data

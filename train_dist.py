@@ -144,7 +144,7 @@ def main():
                 sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
                                                         config=config,hooks=[sync_replicas_hook],
                                                         checkpoint_dir=hp.logdir)
-                sess.run(init)
+                if is_chief: sess.run(init)
             else:
                 sv = tf.train.Supervisor(logdir=hp.logdir,
                                      save_model_secs=600,is_chief=is_chief)

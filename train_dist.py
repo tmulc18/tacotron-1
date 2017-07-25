@@ -144,11 +144,14 @@ def main():
                 # Hooks
                 sync_replicas_hook = g.optimizer.make_session_run_hook(is_chief)
                 scaff=tf.train.Scaffold(init_op=g.init,saver=g.saver,summary_op=g.merged)
+                saver_hook = tf.train.CheckpointSaverHook(checkpoint_dir=hp.logdir,scaffold=scaff,save_steps=1000)
                 summary_hook = tf.train.SummarySaverHook(save_steps=10,output_dir=hp.logdir,scaffold=scaff)
+                hooks=[sync_replicas_hook,summary_hook,saver_hook]
+
+                # Monitored Session
                 sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
-                                                        config=config,hooks=[sync_replicas_hook,summary_hook],
+                                                        config=config,hook=hooks,
                                                         checkpoint_dir=hp.logdir,scaffold=scaff)
-                #if is_chief: sess.run(g.init)
             else:
                 sv = tf.train.Supervisor(logdir=hp.logdir,
                                      save_model_secs=600,is_chief=is_chief)

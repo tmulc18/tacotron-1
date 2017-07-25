@@ -107,8 +107,8 @@ class Graph:
                     one = tf.constant(1)
                     self.inc_settle = tf.assign_add(self.settle_step,one)
 
-                    if hp.synch:
-                        self.init = tf.global_variables_initializer()
+                    # if hp.synch:
+                    #     self.init = tf.global_variables_initializer()
          
 def main():
     cluster = tf.train.ClusterSpec(hp.cluster_spec) #lets this node know about all other nodes
@@ -144,7 +144,7 @@ def main():
                 sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
                                                         config=config,hooks=[sync_replicas_hook],
                                                         checkpoint_dir=hp.logdir)
-                if is_chief: sess.run(init)
+                # if is_chief: sess.run(init)
             else:
                 sv = tf.train.Supervisor(logdir=hp.logdir,
                                      save_model_secs=600,is_chief=is_chief)
@@ -154,7 +154,7 @@ def main():
                 if is_chief:
                     gs = sess.run(g.global_step) 
                     #sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
-                    sv.start_queue_runners(sess, )
+                    #sv.start_queue_runners(sess, )
                 if hp.synch:
                     if sess.should_stop(): break
                 else:

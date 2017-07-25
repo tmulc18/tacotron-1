@@ -127,64 +127,64 @@ def main():
         
         g = Graph(); print("Training Graph loaded")
         
-        #with g.graph.as_default():
-        # Load vocabulary 
-        char2idx, idx2char = load_vocab()
-        
-        # Training 
-        # sv = tf.train.Supervisor(logdir=hp.logdir,
-        #                          save_model_secs=600,is_chief=is_chief)
+        with g.graph.as_default():
+            # Load vocabulary 
+            char2idx, idx2char = load_vocab()
+            
+            # Training 
+            # sv = tf.train.Supervisor(logdir=hp.logdir,
+            #                          save_model_secs=600,is_chief=is_chief)
 
-        # GPU settings
-        gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC") # try to remove
-        config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True) #try to remove
+            # GPU settings
+            gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC") # try to remove
+            config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True) #try to remove
 
-        if hp.synch:
-            sync_replicas_hook = g.optimizer.make_session_run_hook(is_chief)
-            sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
-                                                    config=config,hooks=[sync_replicas_hook],
-                                                    checkpoint_dir=hp.logdir)
-            # if is_chief: sess.run(init)
-        else:
-            sv = tf.train.Supervisor(logdir=hp.logdir,
-                                 save_model_secs=600,is_chief=is_chief)
-            sess = sv.prepare_or_wait_for_session(server.target,config=config,start_standard_services=True)
-        ss = sess.run(g.settle_step)
-        for epoch in range(1, hp.num_epochs+1):
-            if is_chief:
-                gs = sess.run(g.global_step) 
-                #sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
-                #sv.start_queue_runners(sess, )
             if hp.synch:
-                if sess.should_stop(): break
+                sync_replicas_hook = g.optimizer.make_session_run_hook(is_chief)
+                sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
+                                                        config=config,hooks=[sync_replicas_hook],
+                                                        checkpoint_dir=hp.logdir)
+                # if is_chief: sess.run(init)
             else:
-                if sv.should_stop(): break
-
-            for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b%d'%FLAGS.task_index):
-                # Synchronous
+                sv = tf.train.Supervisor(logdir=hp.logdir,
+                                     save_model_secs=600,is_chief=is_chief)
+                sess = sv.prepare_or_wait_for_session(server.target,config=config,start_standard_services=True)
+            ss = sess.run(g.settle_step)
+            for epoch in range(1, hp.num_epochs+1):
+                if is_chief:
+                    gs = sess.run(g.global_step) 
+                    #sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
+                    #sv.start_queue_runners(sess, )
                 if hp.synch:
-                    sess.run(g.train_op)
-
-                # Asynchronous
+                    if sess.should_stop(): break
                 else:
-                    if ss <= hp.settle_steps*len(hp.worker):
-                        if is_chief:
-                            sess.run([g.train_op,g.inc_settle])
-                            ss = sess.run(g.settle_step)
-                        else:
-                            while(ss<hp.settle_steps*FLAGS.task_index):
-                                time.sleep(.01)
-                                ss = sess.run(g.settle_step)
-                    else:
+                    if sv.should_stop(): break
+
+                for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b%d'%FLAGS.task_index):
+                    # Synchronous
+                    if hp.synch:
                         sess.run(g.train_op)
 
-                # Create the summary every 100 chief steps.
-                #sv.summary_computed(sess, sess.run(g.merged))
-            
-            # # Write checkpoint files at every epoch
-            # if is_chief:
-            #     gs = sess.run(g.global_step) 
-            #     sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
+                    # Asynchronous
+                    else:
+                        if ss <= hp.settle_steps*len(hp.worker):
+                            if is_chief:
+                                sess.run([g.train_op,g.inc_settle])
+                                ss = sess.run(g.settle_step)
+                            else:
+                                while(ss<hp.settle_steps*FLAGS.task_index):
+                                    time.sleep(.01)
+                                    ss = sess.run(g.settle_step)
+                        else:
+                            sess.run(g.train_op)
+
+                    # Create the summary every 100 chief steps.
+                    #sv.summary_computed(sess, sess.run(g.merged))
+                
+                # # Write checkpoint files at every epoch
+                # if is_chief:
+                #     gs = sess.run(g.global_step) 
+                #     sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

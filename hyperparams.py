@@ -67,7 +67,7 @@ class Hyperparams(object):
 
     # Synchronous
     synch = True
-    n_stale = 4
+    n_stale = 3
     
     # Binning
     binning = True

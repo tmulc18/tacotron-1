@@ -129,6 +129,7 @@ def main():
             config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True) #try to remove
             with sv.prepare_or_wait_for_session(server.target,config=config,start_standard_services=True) as sess:
                 ss = sess.run(g.settle_step)
+                sv.coord()
                 for epoch in range(1, hp.num_epochs+1):
                     if is_chief:
                         gs = sess.run(g.global_step) 

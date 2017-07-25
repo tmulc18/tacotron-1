@@ -55,7 +55,7 @@ class Hyperparams(object):
     # Distributed computing
     # There are len(ips) machines, each with n worker nodes and 1 ps on port 2222
     n = 4
-    ips = ['35.197.6.137','35.197.13.137']
+    ips = ['35.197.6.137','35.197.43.182']
     ps = [ip+':2222' for ip in ips]
     worker = [ip+':'+str(2223+i) for ip in ips for i in range(n)]
     #ps= ['localhost:2222']

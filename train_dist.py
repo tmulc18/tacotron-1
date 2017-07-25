@@ -84,7 +84,7 @@ class Graph:
                     #gradient clipping
                     grads,var_list = zip(*self.optimizer.compute_gradients(self.mean_loss))
                     grads_clipped,_=tf.clip_by_global_norm(grads,5.)
-                    self.train_op= self.optimizer.apply_gradients(zip(grads_clipped,var_list))
+                    self.train_op= self.optimizer.apply_gradients(zip(grads_clipped,var_list),global_step=self.global_step)
                     #self.train_op = self.optimizer.minimize(self.mean_loss, global_step=self.global_step)
                        
                     # Summmary 
@@ -110,7 +110,7 @@ def main():
         hp.wkr = FLAGS.task_index
 
         is_chief = (FLAGS.task_index == 0) #checks if this is the chief node
-        gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC",visible_device_list="%d"%FLAGS.task_index)
+        gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="",visible_device_list="%d"%FLAGS.task_index)
         config = tf.ConfigProto(allow_soft_placement=True,device_count={'GPU':1})  
         server = tf.train.Server(cluster,job_name="worker",
                         task_index=FLAGS.task_index,config=config)

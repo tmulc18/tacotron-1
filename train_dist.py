@@ -140,7 +140,7 @@ def main():
                 sync_replicas_hook = g.optimizer.make_session_run_hook(is_chief)
                 sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
                                                         config=config,hooks=[sync_replicas_hook],
-                                                        checkpoint_dir=logdir)
+                                                        checkpoint_dir=hp.logdir)
             else:
                 sv = tf.train.Supervisor(logdir=hp.logdir,
                                      save_model_secs=600,is_chief=is_chief)

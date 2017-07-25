@@ -150,7 +150,7 @@ def main():
 
                 # Monitored Session
                 sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
-                                                        config=config,hook=hooks,
+                                                        config=config,hooks=hooks,
                                                         checkpoint_dir=hp.logdir,scaffold=scaff)
             else:
                 sv = tf.train.Supervisor(logdir=hp.logdir,

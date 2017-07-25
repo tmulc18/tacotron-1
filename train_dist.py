@@ -83,8 +83,9 @@ class Graph:
 
                     # Synchronous
                     if hp.synch:
-                        self.optimizer = tf.SyncReplicasOptimizer(self.optimizer, replicas_to_aggregate=len(ips)*hp.n-hp.n_stale,
-                                   total_num_replicas=en(ips)*hp.n)
+                        self.optimizer = tf.train.SyncReplicasOptimizer(self.optimizer, 
+                                                replicas_to_aggregate=len(ips)*hp.n-hp.n_stale,
+                                                total_num_replicas=en(ips)*hp.n)
 
 
                     #gradient clipping
@@ -154,7 +155,7 @@ def main():
                     if sess.should_stop(): break
                 else:
                     if sv.should_stop(): break
-                
+
                 for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b%d'%FLAGS.task_index):
                     # Synchronous
                     if hp.synch:

@@ -1,7 +1,9 @@
 #!/bin/bash
 sudo apt-get install zip
-sudo apt-get install unzip &
-sudo apt-get install htop &
+sudo apt-get install unzip
+sudo apt-get install htop
+
+sh ./downloadData.sh &
 
 
 sudo apt-get update

@@ -107,8 +107,8 @@ class Graph:
                     one = tf.constant(1)
                     self.inc_settle = tf.assign_add(self.settle_step,one)
 
-                    # if hp.synch:
-                    #     self.init = tf.global_variables_initializer()
+                    if hp.synch:
+                        self.init = tf.global_variables_initializer()
          
 def main():
     cluster = tf.train.ClusterSpec(hp.cluster_spec) #lets this node know about all other nodes
@@ -121,7 +121,7 @@ def main():
 
         is_chief = (FLAGS.task_index == 0) #checks if this is the chief node
         gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="",visible_device_list="%d"%FLAGS.task_index)
-        config = tf.ConfigProto(allow_soft_placement=True,device_count={'GPU':1})  
+        config = tf.ConfigProto(allow_soft_placement=True,device_count={'GPU':1},inter_op_parallelism_threads=1,intra_op_parallelism_threads=1)  
         server = tf.train.Server(cluster,job_name="worker",
                         task_index=FLAGS.task_index,config=config)
         
@@ -137,14 +137,14 @@ def main():
 
             # GPU settings
             gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC") # try to remove
-            config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True) #try to remove
+            config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True,inter_op_parallelism_threads=1,intra_op_parallelism_threads=1) #try to remove
 
             if hp.synch:
                 sync_replicas_hook = g.optimizer.make_session_run_hook(is_chief)
                 sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
                                                         config=config,hooks=[sync_replicas_hook],
                                                         checkpoint_dir=hp.logdir)
-                # if is_chief: sess.run(init)
+                if is_chief: sess.run(g.init)
             else:
                 sv = tf.train.Supervisor(logdir=hp.logdir,
                                      save_model_secs=600,is_chief=is_chief)

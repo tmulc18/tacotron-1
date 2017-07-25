@@ -155,12 +155,13 @@ def main():
                     gs = sess.run(g.global_step) 
                     #sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
                     #sv.start_queue_runners(sess, )
-                if hp.synch:
-                    if sess.should_stop(): break
-                else:
-                    if sv.should_stop(): break
 
                 for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b%d'%FLAGS.task_index):
+                    if hp.synch:
+                        if sess.should_stop(): print('fuck'); break
+                    else:
+                        if sv.should_stop(): print('fuck'); break
+
                     # Synchronous
                     if hp.synch:
                         sess.run(g.train_op)

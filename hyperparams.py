@@ -56,8 +56,8 @@ class Hyperparams(object):
     # There are len(ips) machines, each with n worker nodes and 1 ps on port 2222
     n = 4
     #ips = ['35.197.23.34','35.197.13.2','35.197.33.243','104.196.252.37','35.197.51.142','35.185.201.89']
-    #ips = ['35.197.42.178','35.185.225.44']
-    ips = ['localhost']
+    ips = ['35.197.42.178','35.185.225.44']
+    #ips = ['localhost']
     ps = [ip+':2222' for ip in ips]
     worker = [ip+':'+str(2223+i) for ip in ips for i in range(n)]
     #ps= ['localhost:2222']
@@ -67,7 +67,7 @@ class Hyperparams(object):
 
     # Synchronous
     synch = True
-    n_stale = 3
+    n_stale = 2
     
     # Binning
     binning = True

@@ -38,7 +38,7 @@ class Hyperparams(object):
     attention_type = 'luong'  #the type of attention value: luong, bahd
     
     # training scheme
-    lr = 0.0005 # Paper => Exponential decay
+    lr = 0.00015 # Paper => Exponential decay
     logdir = "logdir" if not sanity_check else "logdir_s"
     outputdir = 'samples' if not sanity_check else "samples_s"
     batch_size = 32
@@ -54,7 +54,7 @@ class Hyperparams(object):
 
     # Distributed computing
     # There are len(ips) machines, each with n worker nodes and 1 ps on port 2222
-    n = 3
+    n = 4
     ips = ['35.197.23.34','35.197.13.2','35.197.33.243','104.196.252.37','35.197.51.142','35.185.201.89']
     ps = [ip+':2222' for ip in ips]
     worker = [ip+':'+str(2223+i) for ip in ips for i in range(n)]
@@ -62,6 +62,10 @@ class Hyperparams(object):
     #worker=['localhost:2223','localhost:2224','localhost:2225','localhost:2226']                     
     cluster_spec = {'ps':ps,'worker':worker}
     settle_steps = 0 # use if fewer workers in start of training else set to 0
+
+    # Synchronous
+    synch = False
+    n_stale = 4
     
     # Binning
     binning = True

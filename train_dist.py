@@ -81,17 +81,23 @@ class Graph:
                     #self.global_step = tf.contrib.framework.get_or_create_global_step()
                     self.optimizer = tf.train.AdamOptimizer(learning_rate=hp.lr)
 
+                    # Synchronous
+                    if hp.synch:
+                        self.optimizer = tf.SyncReplicasOptimizer(self.optimizer, replicas_to_aggregate=len(ips)*hp.n-hp.n_stale,
+                                   total_num_replicas=en(ips)*hp.n)
+
+
                     #gradient clipping
                     grads,var_list = zip(*self.optimizer.compute_gradients(self.mean_loss))
                     grads_clipped,_=tf.clip_by_global_norm(grads,5.)
                     self.train_op= self.optimizer.apply_gradients(zip(grads_clipped,var_list),global_step=self.global_step)
                     #self.train_op = self.optimizer.minimize(self.mean_loss, global_step=self.global_step)
-                       
+
+
                     # Summmary 
                     tf.summary.scalar('mean_loss1', self.mean_loss1)
                     tf.summary.scalar('mean_loss2', self.mean_loss2)
                     tf.summary.scalar('mean_loss', self.mean_loss)
-                    
                     
                     self.merged = tf.summary.merge_all()
 
@@ -125,27 +131,38 @@ def main():
             sv = tf.train.Supervisor(logdir=hp.logdir,
                                      save_model_secs=600,is_chief=is_chief)
 
+            # Synchronous hook
+            sync_replicas_hook = g.optimizer.make_session_run_hook(is_chief) if hp.synch else None
+
+            # GPU settings
             gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC") # try to remove
             config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True) #try to remove
+
             with sv.prepare_or_wait_for_session(server.target,config=config,start_standard_services=True) as sess:
                 ss = sess.run(g.settle_step)
                 for epoch in range(1, hp.num_epochs+1):
                     if is_chief:
                         gs = sess.run(g.global_step) 
                         #sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
-                        #sv.start_queue_runners(sess, )
+                        sv.start_queue_runners(sess, )
                     if sv.should_stop(): print('****made it '*30) ;break
                     for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b%d'%FLAGS.task_index):
-                        if ss <= hp.settle_steps*len(hp.worker):
-                            if is_chief:
-                                sess.run([g.train_op,g.inc_settle])
-                                ss = sess.run(g.settle_step)
-                            else:
-                                while(ss<hp.settle_steps*FLAGS.task_index):
-                                    time.sleep(.01)
-                                    ss = sess.run(g.settle_step)
+                        # Synchronous
+                        if hp.synch:
+                            break # add functionality
+
+                        # Asynchronous
                         else:
-                            sess.run(g.train_op)
+                            if ss <= hp.settle_steps*len(hp.worker):
+                                if is_chief:
+                                    sess.run([g.train_op,g.inc_settle])
+                                    ss = sess.run(g.settle_step)
+                                else:
+                                    while(ss<hp.settle_steps*FLAGS.task_index):
+                                        time.sleep(.01)
+                                        ss = sess.run(g.settle_step)
+                            else:
+                                sess.run(g.train_op)
 
                         # Create the summary every 100 chief steps.
                         #sv.summary_computed(sess, sess.run(g.merged))

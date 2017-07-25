@@ -122,7 +122,7 @@ def get_batch():
     """Loads training data and put them in queues"""
     with tf.device('/cpu:0'):
         # Load data
-        texts, sound_files = load_trnain_data(worker) # byte, string
+        texts, sound_files = load_train_data() # byte, string
         
         # calc total batch count
         num_batch = len(texts) // hp.batch_size

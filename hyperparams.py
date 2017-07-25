@@ -38,7 +38,7 @@ class Hyperparams(object):
     attention_type = 'luong'  #the type of attention value: luong, bahd
     
     # training scheme
-    lr = 0.0002 # Paper => Exponential decay
+    lr = 0.0005 # Paper => Exponential decay
     logdir = "logdir" if not sanity_check else "logdir_s"
     outputdir = 'samples' if not sanity_check else "samples_s"
     batch_size = 32

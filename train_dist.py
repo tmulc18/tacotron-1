@@ -80,7 +80,12 @@ class Graph:
                     self.global_step = tf.Variable(0, name='global_step', trainable=False)
                     #self.global_step = tf.contrib.framework.get_or_create_global_step()
                     self.optimizer = tf.train.AdamOptimizer(learning_rate=hp.lr)
-                    self.train_op = self.optimizer.minimize(self.mean_loss, global_step=self.global_step)
+
+                    #gradient clipping
+                    grads,var_list = zip(*optimizer.compute_gradients(self.mean_loss))
+                    grads_clipped,_=tf.clip_by_global_norm(grads,5.)
+                    self.train_op= self.optimizer.apply_gradients(zip(grads_clipped,var_list))
+                    #self.train_op = self.optimizer.minimize(self.mean_loss, global_step=self.global_step)
                        
                     # Summmary 
                     tf.summary.scalar('mean_loss1', self.mean_loss1)

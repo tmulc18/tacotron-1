@@ -141,10 +141,12 @@ def main():
             #config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True,inter_op_parallelism_threads=1,intra_op_parallelism_threads=1) #try to remove
 
             if hp.synch:
+                # Hooks
                 sync_replicas_hook = g.optimizer.make_session_run_hook(is_chief)
                 scaff=tf.train.Scaffold(init_op=g.init,saver=g.saver,summary_op=g.merged)
+                summary_hook = tf.train.SummarySaverHook(save_steps=10,output_dir=hp.logdir,scaffold=scaff)
                 sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
-                                                        config=config,hooks=[sync_replicas_hook],
+                                                        config=config,hooks=[sync_replicas_hook,summary_hook],
                                                         checkpoint_dir=hp.logdir,scaffold=scaff)
                 #if is_chief: sess.run(g.init)
             else:

@@ -142,7 +142,7 @@ def main():
 
             if hp.synch:
                 sync_replicas_hook = g.optimizer.make_session_run_hook(is_chief)
-                scaff=tf.train.Scaffold(init_op=g.init,saver=g.saver)
+                scaff=tf.train.Scaffold(init_op=g.init,saver=g.saver,summary_op=g.merged)
                 sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
                                                         config=config,hooks=[sync_replicas_hook],
                                                         checkpoint_dir=hp.logdir,scaffold=scaff)

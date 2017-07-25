@@ -125,15 +125,15 @@ def main():
             sv = tf.train.Supervisor(logdir=hp.logdir,
                                      save_model_secs=600,is_chief=is_chief)
 
-            gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC")
-            config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True)
+            gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="BFC") # try to remove
+            config = tf.ConfigProto(gpu_options=gpu_options,allow_soft_placement=True) #try to remove
             with sv.prepare_or_wait_for_session(server.target,config=config,start_standard_services=True) as sess:
                 ss = sess.run(g.settle_step)
                 for epoch in range(1, hp.num_epochs+1):
                     if is_chief:
                         gs = sess.run(g.global_step) 
                         #sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
-                        sv.start_queue_runners(sess, )
+                        #sv.start_queue_runners(sess, )
                     if sv.should_stop(): print('****made it '*30) ;break
                     for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b%d'%FLAGS.task_index):
                         if ss <= hp.settle_steps*len(hp.worker):

@@ -118,11 +118,11 @@ class _FuncQueueRunner(tf.train.QueueRunner):
                 with self._lock:
                     self._runs_per_session[sess] -= 1
                     
-def get_batch():
+def get_batch(worker):
     """Loads training data and put them in queues"""
     with tf.device('/cpu:0'):
         # Load data
-        texts, sound_files = load_train_data() # byte, string
+        texts, sound_files = load_trnain_data(worker) # byte, string
         
         # calc total batch count
         num_batch = len(texts) // hp.batch_size
@@ -155,12 +155,12 @@ def get_batch():
         x, y, z = get_text_and_spectrograms(inputs=[text, sound_file], 
                                             dtypes=[tf.int32, tf.float32, tf.float32],
                                             capacity=128*hp.batch_size,
-                                            num_threads=32)
+                                            num_threads=16)
         
         # create batch queues
         x, y, z = tf.train.batch([x, y, z],
                                 shapes=[(None,), (None, hp.n_mels*hp.r), (None, (1+hp.n_fft//2)*hp.r)],
-                                num_threads=32,
+                                num_threads=16,
                                 batch_size=hp.batch_size, 
                                 capacity=hp.batch_size*64,   
                                 dynamic_pad=True)

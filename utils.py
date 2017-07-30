@@ -183,6 +183,9 @@ def get_bins(num_workers,text_len):
     cdf,X = get_cdf(text_len)
     
     percentage_data = 1./num_workers
+    if hp.sanity_check:
+        percentage_data = 1.
+        
     bins = dict()
     for worker in range(num_workers):
         min_q,max_q = (worker)*percentage_data,(worker+1)*percentage_data

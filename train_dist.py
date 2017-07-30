@@ -122,7 +122,8 @@ def main():
 
         is_chief = (FLAGS.task_index == 0) #checks if this is the chief node
         gpu_options = tf.GPUOptions(allow_growth=True,allocator_type="",visible_device_list="%d"%FLAGS.task_index)
-        config = tf.ConfigProto(allow_soft_placement=True,device_count={'GPU':1},inter_op_parallelism_threads=0,intra_op_parallelism_threads=0)  
+        # config = tf.ConfigProto(allow_soft_placement=True,device_count={'GPU':1},inter_op_parallelism_threads=0,intra_op_parallelism_threads=0)
+        config = tf.ConfigProto(allow_soft_placement=True,inter_op_parallelism_threads=0,intra_op_parallelism_threads=0) 
         server = tf.train.Server(cluster,job_name="worker",
                         task_index=FLAGS.task_index,config=config)
         

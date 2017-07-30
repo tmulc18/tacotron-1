@@ -1,3 +1,13 @@
+
+# Distributed Tacotron
+
+Make adjustment to the hyperparameters to that you have n worker (usually n is the number of gpus on the machine).  If training across multiple machines, replace the ips array with a list of ip addresses for you machine.
+
+To run a collection of workers on machine <m> just use
+`bash train_dist_auto.sh <m>`
+
+
+# Inherited 
 # A (Heavily Documented) TensorFlow Implementation of Tacotron: A Fully End-to-End Text-To-Speech Synthesis Model
 
 ## **Major History**

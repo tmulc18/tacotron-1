@@ -153,7 +153,7 @@ def main():
                 sess = tf.train.MonitoredTrainingSession(server.target,is_chief=is_chief,
                                                         config=config,chief_only_hooks=hooks,
                                                         checkpoint_dir=hp.logdir,scaffold=scaff,
-                                                        log_step_count_steps=100)
+                                                        log_step_count_steps=10)
             else:
                 sv = tf.train.Supervisor(logdir=hp.logdir,
                                      save_model_secs=600,is_chief=is_chief)
@@ -167,9 +167,9 @@ def main():
 
                 for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b%d'%FLAGS.task_index):
                     if hp.synch:
-                        if sess.should_stop(): print('fuck'); break
+                        if sess.should_stop(): break
                     else:
-                        if sv.should_stop(): print('fuck'); break
+                        if sv.should_stop(): break
 
                     # Synchronous
                     if hp.synch:

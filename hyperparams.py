@@ -8,7 +8,7 @@ https://www.github.com/kyubyong/tacotron
 class Hyperparams(object):
     '''Hyper parameters'''
     # mode
-    sanity_check = False
+    sanity_check = True
     
     # data
     text_file = 'WEB/text.csv'
@@ -53,7 +53,8 @@ class Hyperparams(object):
                                  # so exclude them from the loss calculation.
 
     # Distributed computing
-    # There are len(ips) machines, each with n worker nodes and 1 ps on port 2222
+    # There are m=len(ips) machines, each with n worker nodes and 1 ps on port 2222
+    # and worker servers on ports 2222 through 2222+n
     n = 4 # the number of workers per machine
     ips = ['localhost'] #list of machine ip addresses
 
@@ -65,10 +66,10 @@ class Hyperparams(object):
     settle_steps = 0 # use if fewer workers in start of training else set to 0
 
     # Synchronous
-    synch = True
-    n_stale = 2
+    synch = False
+    n_stale = 0 # be care. this number must be less than m*n
     
     # Binning
-    binning = True
+    binning = True #permanent binning right now. TODO
     wkr = None # current worker
 

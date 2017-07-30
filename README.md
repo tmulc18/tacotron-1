@@ -1,9 +1,12 @@
 
 # Distributed Tacotron
+Assumes Ubuntu 16.04 LTS
 
-Make adjustment to the hyperparameters to that you have n worker (usually n is the number of gpus on the machine).  If training across multiple machines, replace the ips array with a list of ip addresses for you machine.
+Run the instance set up with `sh instance_setup gpu` to install softare with gpu drivers and cuda software.  Run with `sh instance_setup` for cpu only install.
 
-To run a collection of workers on machine <m> just use
+Make adjustment to the hyperparameters to that you have **n** workers (usually **n** is the number of gpus on the machine).  If training across multiple machines, replace the ips array with a list of ip addresses for your machines.  Make adjustments in train_dist_auto.sh according to **n**.
+
+To run a collection of workers on machine **m** just use
 `bash train_dist_auto.sh <m>`
 
 

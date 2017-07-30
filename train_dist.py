@@ -187,10 +187,7 @@ def main():
                                     ss = sess.run(g.settle_step)
                         else:
                             sess.run(g.train_op)
-
-                    # Create the summary every 100 chief steps.
-                    #sv.summary_computed(sess, sess.run(g.merged))
-                
+                            
                 # # Write checkpoint files at every epoch
                 # if is_chief:
                 #     gs = sess.run(g.global_step) 

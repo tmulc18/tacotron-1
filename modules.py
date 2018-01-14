@@ -33,7 +33,7 @@ def embed(inputs, vocab_size, num_units, zero_pad=True, scope="embedding", reuse
         lookup_table = tf.get_variable('lookup_table', 
                                        dtype=tf.float32, 
                                        shape=[vocab_size, num_units],
-                                       initializer=tf.truncated_normal_initializer(mean=0.0, stddev=0.01))
+                                       initializer=tf.random_uniform_initializer(minval=-1,maxval=1))
         if zero_pad:
             lookup_table = tf.concat((tf.zeros(shape=[1, num_units]), 
                                       lookup_table[1:, :]), 0)
@@ -216,11 +216,11 @@ def gru(inputs, num_units=None, bidirection=False, scope="gru", reuse=None):
         if bidirection: 
             cell_bw = tf.contrib.rnn.GRUCell(num_units)
             outputs, _ = tf.nn.bidirectional_dynamic_rnn(cell, cell_bw, inputs, 
-                                                         dtype=tf.float32,swap_memory=True)
+                                                         dtype=tf.float32)
             return tf.concat(outputs, 2)  
         else:
             outputs, _ = tf.nn.dynamic_rnn(cell, inputs, 
-                                           dtype=tf.float32,swap_memory=True)
+                                           dtype=tf.float32)
             return outputs
 
 def attention_decoder(inputs, memory, num_units=None, scope="attention_decoder", reuse=None):
@@ -241,21 +241,19 @@ def attention_decoder(inputs, memory, num_units=None, scope="attention_decoder",
         if num_units is None:
             num_units = inputs.get_shape().as_list[-1]
         
-        if hp.attention_type == 'luong':
-            attention_mechanism = tf.contrib.seq2seq.LuongAttention(num_units, 
-                                                                    memory, 
-                                                                    scale=True,
-                                                                    probability_fn=tf.nn.softmax)
-        else:
-            attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(num_units, 
-                                                                    memory, 
-                                                                    normalize=True,
-                                                                    probability_fn=tf.nn.softmax)
+        attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(num_units, 
+                                                                   memory, 
+                                                                   normalize=False,
+                                                                   probability_fn=tf.nn.softmax)
         decoder_cell = tf.contrib.rnn.GRUCell(num_units)
-        cell_with_attention = tf.contrib.seq2seq.AttentionWrapper(decoder_cell, attention_mechanism, num_units)
-        outputs, _ = tf.nn.dynamic_rnn(cell_with_attention, inputs, 
+        cell_with_attention = tf.contrib.seq2seq.AttentionWrapper(decoder_cell, 
+                                                              attention_mechanism, 
+                                                              num_units,
+                                                              alignment_history=True,
+                                                              output_attention=False)
+        outputs, state = tf.nn.dynamic_rnn(cell_with_attention, inputs, 
                                        dtype=tf.float32) #( N, T', 16)
-    return outputs
+    return outputs, state
 
 def prenet(inputs, is_training=True, scope="prenet", reuse=None):
     '''Prenet for Encoder and Decoder.
@@ -295,7 +293,8 @@ def highwaynet(inputs, num_units=None, scope="highwaynet", reuse=None):
         
     with tf.variable_scope(scope, reuse=reuse):
         H = tf.layers.dense(inputs, units=num_units, activation=tf.nn.relu, name="dense1")
-        T = tf.layers.dense(inputs, units=num_units, activation=tf.nn.sigmoid, name="dense2")
+        T = tf.layers.dense(inputs, units=num_units, activation=tf.nn.sigmoid,
+                            bias_initializer=tf.constant_initializer(-1.0), name="dense2")
         C = 1. - T
         outputs = H * T + inputs * C
     return outputs

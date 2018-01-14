@@ -20,7 +20,7 @@ import numpy as np
 from prepro import *
 from prepro import load_vocab
 import tensorflow as tf
-from utils import shift_by_one
+from utils import shift_by_one, plot_alignment
 
 
 class Graph:
@@ -35,18 +35,21 @@ class Graph:
                 self.x, self.y, self.z, self.num_batch = get_batch()
             else: # Evaluation
                 self.x = tf.placeholder(tf.int32, shape=(None, None))
-                self.y = tf.placeholder(tf.float32, shape=(None, None, hp.n_mels*hp.r))
+                self.y = tf.placeholder(tf.float32, shape=(None, None, hp.n_mels))
 
-            self.decoder_inputs = shift_by_one(self.y)
+            print(self.y.shape)
+
+            # self.decoder_inputs = shift_by_one(self.y)
+            self.decoder_inputs = shift_by_one(tf.reshape(self.y,(hp.batch_size,-1,hp.n_mels*hp.r)))
             
             with tf.variable_scope("net"):
                 # Encoder
                 self.memory = encode(self.x, is_training=is_training) # (N, T, E)
                 
                 # Decoder 
-                self.outputs1 = decode1(self.decoder_inputs, 
-                                         self.memory,
-                                         is_training=is_training) # (N, T', hp.n_mels*hp.r)
+                self.outputs1,self.alignments = decode1(self.decoder_inputs, 
+                                                self.memory,
+                                                is_training=is_training) # (N, T', hp.n_mels*hp.r)
                 self.outputs2 = decode2(self.outputs1, is_training=is_training) # (N, T', (1+hp.n_fft//2)*hp.r)
              
             if is_training:  
@@ -84,8 +87,12 @@ class Graph:
                                                 
                 # Training Scheme
                 self.global_step = tf.Variable(0, name='global_step', trainable=False)
-                self.optimizer = tf.train.AdamOptimizer(learning_rate=hp.lr)
-                self.train_op = self.optimizer.minimize(self.mean_loss, global_step=self.global_step)
+                self.optimizer = tf.train.AdamOptimizer(learning_rate=hp.lr,beta1=.5,beta2=.99)
+                gradients, variables = zip(*self.optimizer.compute_gradients(self.mean_loss))
+                self.clipped_gradients_val=[tf.clip_by_value(grad,-.05,.05) for grad in gradients]
+                self.clipped_gradients, _ = tf.clip_by_global_norm(self.clipped_gradients_val, 1.0)
+                self.train_op = self.optimizer.apply_gradients(zip(self.clipped_gradients, variables),
+                                                                    global_step=self.global_step)
                    
                 # Summmary 
                 tf.summary.scalar('mean_loss1', self.mean_loss1)
@@ -113,11 +120,15 @@ def main():
         
         # Training 
         sv = tf.train.Supervisor(logdir=hp.logdir,
-                                 save_model_secs=0)
+                                 save_model_secs=1800)
         with sv.managed_session() as sess:
             for epoch in range(1, hp.num_epochs+1): 
                 if sv.should_stop(): break
                 for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b'):
+                    #plot alignments
+                    if step % 1000 == 1:
+                        gs,al = sess.run([g.global_step,g.alignments])
+                        plot_alignment(al[0],gs)
                     sess.run(g.train_op)
                 
                 # Write checkpoint files at every epoch

@@ -122,17 +122,18 @@ def get_batch():
     """Loads training data and put them in queues"""
     with tf.device('/cpu:0'):
         # Load data
-        texts, sound_files = load_train_data() # byte, string
+        lengths, texts, sound_files = load_train_data() # byte, string
         
         # calc total batch count
         num_batch = len(texts) // hp.batch_size
          
         # Convert to tensor
+        lenghts = tf.convert_to_tensor(lengths)
         texts = tf.convert_to_tensor(texts)
         sound_files = tf.convert_to_tensor(sound_files)
          
         # Create Queues
-        text, sound_file = tf.train.slice_input_producer([texts, sound_files], shuffle=True)
+        length, text, sound_file = tf.train.slice_input_producer([lengths, texts, sound_files], shuffle=True)
 
         @producer_func
         def get_text_and_spectrograms(_inputs):
@@ -154,18 +155,19 @@ def get_batch():
         # Decode sound file
         x, y, z = get_text_and_spectrograms(inputs=[text, sound_file], 
                                             dtypes=[tf.int32, tf.float32, tf.float32],
-                                            capacity=128*hp.batch_size,
+                                            capacity=128,
                                             num_threads=32)
         
         # create batch queues
-        x, y, z = tf.train.batch([x, y, z],
-                                shapes=[(None,), (None, hp.n_mels*hp.r), (None, (1+hp.n_fft//2)*hp.r)],
-                                num_threads=32,
-                                batch_size=hp.batch_size, 
-                                capacity=hp.batch_size*64,   
-                                dynamic_pad=True)
+        _, (x, y, z) = tf.contrib.training.bucket_by_sequence_length(
+                        input_length=length,
+                        tensors=[x, y, z],
+                        shapes=[(None,), (None, hp.n_mels), (None, (1+hp.n_fft//2))],
+                        num_threads=32,
+                        batch_size=hp.batch_size,
+                        bucket_boundaries=[i for i in range(30, hp.max_len, 30)],
+                        capacity=hp.batch_size*4,   
+                        dynamic_pad=True)
         
-        if hp.use_log_magnitude:
-            z = tf.log(z+1e-10)
             
     return x, y, z, num_batch

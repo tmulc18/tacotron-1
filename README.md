@@ -1,22 +1,36 @@
-
-# Distributed Tacotron
-Assumes Ubuntu 16.04 LTS
-
-Run the instance set up with `sh instance_setup gpu` to install softare with gpu drivers and cuda software.  Run with `sh instance_setup` for cpu only install.
-
-Make adjustment to the hyperparameters to that you have **n** workers (usually **n** is the number of gpus on the machine).  If training across multiple machines, replace the ips array with a list of ip addresses for your machines.  Make adjustments in train_dist_auto.sh according to **n**.
-
-To run a collection of workers on machine **m** just use
-`bash train_dist_auto.sh <m>`
-
-
-# Inherited 
 # A (Heavily Documented) TensorFlow Implementation of Tacotron: A Fully End-to-End Text-To-Speech Synthesis Model
 
 ## **Major History**
+  * January 13, 2018.  Fifth draft.
+    * **The TensorFlow version is now 1.4.**
+    * I added attention plots.  It's important to monitor these during training.  If the attention plots look good (alignment look linear), and then they look bad (the plots will look similar to what they looked like in the begining of training), then training has gone awry and should be restarted from a checkpoint where the attention looked good.  This deterioration of attention will correspond with a spike in the loss.
+<img src="fig/attention.gif">
+    * I introduced bucketing of minibatches to speed up training.
+    * The default training data is now the [LJ Dataset](https://keithito.com/LJ-Speech-Dataset/)
+    * The training data is now normalized so that all spectrograms are between zero and one.  Additionally, now both linear and mel spectrogram targets are log-scale.  The text is spelled out (e.g. "sixteen" instead of "16"); code was taken from [Keith Ito](https://github.com/keithito/tacotron).
+    * The the ordering of frames for the spectrograms are now
+        ``` 
+        t    frame numbers
+        -----------------------
+        0    [ 0  1  2  3  4]
+        1    [ 5  6  7  8  9]
+        2    [10 11 12 13 14]
+        ...
+        ```
+        instead of 
+        ```
+        t    frame numbers
+        -----------------------
+        0    [ 0  4  8 12 16]
+        1    [ 1  5  9 13 17]
+        2    [ 2  6 10 14 18]
+        ...
+        ```
+
+
   * June 21, 2017. Fourth draft. 
     * **I've updated the code for TF 1.1 to TF 1.2.** Turns out that TF 1.2 has a new api for attention wrapper and more detailed options.
-    * I've added a sanity check option to the `hyperparams.py` file. Basically, it's purpose is to find out if our model is able to learn a handful of training data wihtout caring about generalization. For that, the training was done on a single mini-batch (32 samples) over and over again, and sample generation was based on the same text. I observed a quite smooth training curve for as below, and after around 18K global steps it started to generate recognizable sounds. The sample results after 36K steps are available in the `logdir_s` folder. It took around seven hours on a single gtx 1080. The pretrained files can be downloaded from [here](https://u42868014.dl.dropboxusercontent.com/u/42868014/tacotron/logdir_s.zip). The training curve looks like this.
+    * I've added a sanity check option to the `hyperparams.py` file. Basically, it's purpose is to find out if our model is able to learn a handful of training data wihtout caring about generalization. For that, the training was done on a single mini-batch (32 samples) over and over again, and sample generation was based on the same text. I observed a quite smooth training curve for as below, and after around 18K global steps it started to generate recognizable sounds. The sample results after 36K steps are available in the `logdir_s` folder. It took around seven hours on a single gtx 1080. The pretrained files can be downloaded from [here](https://www.dropbox.com/s/85kr8b1a2pnky6h/logdir_s.zip?dl=0). The training curve looks like this.
 
 <img src="fig/mean_loss.png">
 
@@ -35,20 +49,19 @@ To run a collection of workers on machine **m** just use
 
 ## Requirements
   * NumPy >= 1.11.1
-  * TensorFlow == 1.2
+  * TensorFlow == 1.4
   * librosa
   * tqdm
 
 ## Data
 Since the [original paper](https://arxiv.org/abs/1703.10135) was based on their internal data, I use a freely available one, instead.
 
-[The World English Bible](https://en.wikipedia.org/wiki/World_English_Bible) is a public domain update of the American Standard Version of 1901 into modern English. Its text and audio recordings are freely available [here](http://www.audiotreasure.com/webindex.htm). Unfortunately, however, each of the audio files matches a chapter, not a verse, so is too long for many machine learning tasks. I had someone slice them by verse manually. You can download [the audio data](https://dl.dropboxusercontent.com/u/42868014/WEB.zip) and its [text](https://dl.dropboxusercontent.com/u/42868014/text.csv) from my dropbox.
+[The World English Bible](https://en.wikipedia.org/wiki/World_English_Bible) is a public domain update of the American Standard Version of 1901 into modern English. Its text and audio recordings are freely available [here](http://www.audiotreasure.com/webindex.htm). Unfortunately, however, each of the audio files matches a chapter, not a verse, so is too long for many machine learning tasks. I had someone slice them by verse manually. You can download [the audio data](https://www.dropbox.com/s/nde56czgda8q77e/WEB.zip?dl=0) and its [text](https://www.dropbox.com/s/lcfhs1kk9shvypj/text.csv?dl=0) from my dropbox.
 
 
 
 ## File description
   * `hyperparams.py` includes all hyper parameters that are needed.
-  * `prepare_pavoque.py` creates sliced sound files from raw sound data, and constructs necessary information.
   * `prepro.py` loads vocabulary, training/evaluation data.
   * `data_load.py` loads data and put them in queues so multiple mini-bach data are generated in parallel.
   * `utils.py` has several custom operational functions.
@@ -60,7 +73,7 @@ Since the [original paper](https://arxiv.org/abs/1703.10135) was based on their 
 
 ## Training
   * STEP 1. Adjust hyper parameters in `hyperparams.py` if necessary.
-  * STEP 2. Download and extract [the audio data](https://dl.dropboxusercontent.com/u/42868014/WEB.zip) and its [text](https://dl.dropboxusercontent.com/u/42868014/text.csv).
+  * STEP 2. Download and extract [the audio data](https://www.dropbox.com/s/nde56czgda8q77e/WEB.zip?dl=0) and its [text](https://www.dropbox.com/s/lcfhs1kk9shvypj/text.csv?dl=0).
   * STEP 3. Run `train.py`. or `train_multi_gpus.py` if you have more than one gpu.
 
 ## Sample Synthesis

@@ -82,17 +82,20 @@ def decode1(decoder_inputs, memory, is_training=True, scope="decoder1", reuse=No
         dec = prenet(decoder_inputs, is_training=is_training) # (N, T', E/2)
         
         # Attention RNN
-        dec = attention_decoder(dec, memory, num_units=hp.embed_size) # (N, T', E)
+        dec,state = attention_decoder(dec, memory, num_units=hp.embed_size) # (N, T', E)
+
+        alignments = tf.transpose(state.alignment_history.stack(),[1,2,0])
 
         # Decoder RNNs
         dec += gru(dec, hp.embed_size, False, scope="decoder_gru1") # (N, T', E)
         dec += gru(dec, hp.embed_size, False, scope="decoder_gru2") # (N, T', E)
           
         # Outputs => (N, T', hp.n_mels*hp.r)
-        out_dim = decoder_inputs.get_shape().as_list()[-1]
-        outputs = tf.layers.dense(dec, out_dim) 
+        # out_dim = decoder_inputs.get_shape().as_list()[-1]
+        outputs = tf.layers.dense(dec, hp.n_mels*hp.r)
+        outputs = tf.reshape(outputs,[hp.batch_size,-1,hp.n_mels]) #( N,T',n_mels)
     
-    return outputs
+    return outputs, alignments
 
 def decode2(inputs, is_training=True, scope="decoder2", reuse=None):
     '''
@@ -136,8 +139,8 @@ def decode2(inputs, is_training=True, scope="decoder2", reuse=None):
         ## Bidirectional GRU    
         dec = gru(dec, hp.embed_size//2, True) # (N, T', E)  
         
-        # Outputs => (N, T', (1+hp.n_fft//2)*hp.r)
-        out_dim = (1+hp.n_fft//2)*hp.r
+        # Outputs => (N, T', (1+hp.n_fft//2))
+        out_dim = (1+hp.n_fft//2)
         outputs = tf.layers.dense(dec, out_dim)
     
     return outputs

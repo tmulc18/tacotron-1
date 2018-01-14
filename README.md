@@ -16,8 +16,7 @@
         2    [10 11 12 13 14]
         ...
         ```
-        
-instead of 
+        instead of 
         
         ```bash
         t    frame numbers

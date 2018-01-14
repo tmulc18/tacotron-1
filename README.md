@@ -3,13 +3,12 @@
 ## **Major History**
   * January 13, 2018.  Fifth draft.
     * **The TensorFlow version is now 1.4.**
-    * I added attention plots.  It's important to monitor these during training.  If the attention plots look good (alignment look linear), and then they look bad (the plots will look similar to what they looked like in the begining of training), then training has gone awry and should be restarted from a checkpoint where the attention looked good.  This deterioration of attention will correspond with a spike in the loss.
-<img src="fig/attention.gif">
+    * I added attention plots.  It's important to monitor these during training.  If the attention plots look good (alignment look linear), and then they look bad (the plots will look similar to what they looked like in the begining of training), then training has gone awry and should be restarted from a checkpoint where the attention looked good.  This deterioration of attention will correspond with a spike in the loss. <img src="fig/attention.gif">
     * I introduced bucketing of minibatches to speed up training.
     * The default training data is now the [LJ Dataset](https://keithito.com/LJ-Speech-Dataset/)
     * The training data is now normalized so that all spectrograms are between zero and one.  Additionally, now both linear and mel spectrogram targets are log-scale.  The text is spelled out (e.g. "sixteen" instead of "16"); code was taken from [Keith Ito](https://github.com/keithito/tacotron).
     * The the ordering of frames for the spectrograms are now
-        ``` 
+        ```bash
         t    frame numbers
         -----------------------
         0    [ 0  1  2  3  4]
@@ -17,8 +16,10 @@
         2    [10 11 12 13 14]
         ...
         ```
-        instead of 
-        ```
+        
+instead of 
+        
+        ```bash
         t    frame numbers
         -----------------------
         0    [ 0  4  8 12 16]
